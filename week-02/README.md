@@ -6,7 +6,7 @@
 
 **What it allows:** every action (`"Action": "*"`) on every resource (`"Resource": "*"`) in the account. This is the same document as the AWS managed policy `AdministratorAccess`.
 
-**Who it's attached to:** my `sereneplummer` IAM admin user from Lab 1.3.
+**Who it's attached to:** my `SerenePlummer-admin` IAM admin user from Lab 1.3.
 
 **Why it's scoped this way:** I need one identity that can do everyday admin work, like creating users, policies, and later EC2, RDS, and VPC resources, without signing in as root. It is deliberately *not* least privilege. To make up for that, the user has MFA, and I don't use it to test low-privilege behavior. A Deny never shows up when you test as an admin.
 

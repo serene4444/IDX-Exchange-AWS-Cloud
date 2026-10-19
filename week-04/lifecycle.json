@@ -1,0 +1,12 @@
+{
+  "Rules": [
+    {
+      "ID": "archive-after-30-days",
+      "Status": "Enabled",
+      "Filter": {},
+      "Transitions": [
+        { "Days": 30, "StorageClass": "GLACIER" }
+      ]
+    }
+  ]
+}
