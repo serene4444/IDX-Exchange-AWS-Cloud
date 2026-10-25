@@ -12,8 +12,8 @@ The program doesn't build a new app every week. It hands you one small, working 
 | 1 | Cloud fundamentals & account security | ✅ Done | [week-01/](./week-01/) |
 | 2 | IAM & security foundations | ✅ Done | [week-02/](./week-02/) |
 | 3 | Compute: EC2 | ✅ Done | [week-03/](./week-03/) |
-| 4 | Storage & databases (S3, RDS, DynamoDB) | 🔄 In progress | |
-| 5 | Networking: VPC deep dive | ⏳ | |
+| 4 | Storage & databases (S3, RDS, DynamoDB) | 🔄 In progress | [week-04/](./week-04/) |
+| 5 | Networking: VPC deep dive | ✅ Done | [week-05/](./week-05/) |
 | 6 | Load balancing & auto scaling | ⏳ | |
 | 7 | Serverless & event-driven (Lambda, API Gateway, SQS) | ⏳ | |
 | 8 | Infrastructure as Code (Terraform) | ⏳ | |
@@ -49,11 +49,19 @@ The program doesn't build a new app every week. It hands you one small, working 
 - Practiced **EBS snapshots** and documented how to debug SSH timeouts, which are usually a stale "My IP" rule.
 - Tore everything down at the end of the week to avoid charges.
 
+### Week 5: VPC networking
+
+- Built a two-AZ VPC (`10.0.0.0/16`) with public and private subnets, an Internet Gateway, a NAT Gateway, and explicit route tables, all scripted with the AWS CLI.
+- Set up the **bastion host pattern**: SSH from my IP into the bastion, then into a private instance whose security group only allows the bastion's security group.
+- Proved the private instance has outbound internet only through the NAT (its outbound IP was the NAT's Elastic IP).
+- Reproduced Debug Lab 5.3 by breaking a route table association, then fixed it.
+- Tore everything down with a teardown script that checks for leftover resources.
+
 ## Skills & services
 
-**AWS:** IAM (users, policies, Access Analyzer), EC2, EBS, security groups, Budgets  
+**AWS:** IAM (users, policies, Access Analyzer), AWS Organizations SCPs, EC2, EBS, S3, VPC (subnets, route tables, IGW, NAT Gateway), security groups, Budgets  
 **Tools:** AWS CLI v2, Git/GitHub, Python/Flask, Bash, SSH  
-**Coming up:** S3, RDS (MySQL), DynamoDB, VPC, ALB/ASG, Lambda, API Gateway, SQS/SNS, Terraform, Docker, ECS Fargate, GitHub Actions, CloudWatch
+**Coming up:** RDS (MySQL), DynamoDB, ALB/ASG, Lambda, API Gateway, SQS/SNS, Terraform, Docker, ECS Fargate, GitHub Actions, CloudWatch
 
 ## Repo layout
 
@@ -62,6 +70,8 @@ propertylite/     The Flask app operated all program (app.py, requirements, samp
 week-01/          Account security evidence + concepts write-up
 week-02/          IAM policies (JSON) + README explaining each one
 week-03/          EC2 runbook, user data bootstrap script, curl evidence
+week-04/          S3 lifecycle, RDS PII cleanup SQL, storage decision guide
+week-05/          VPC build/teardown scripts, diagram, traffic-path write-up
 ```
 
 ## Habits I follow every week
