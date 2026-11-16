@@ -2,3 +2,12 @@
 /rets_property.sql
 *.pem
 training-key.pem
+
+# Terraform (Week 8+): providers, state, and plans can contain secrets
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+# Lambda build artifacts
+*.zip

@@ -7,7 +7,7 @@ q() { aws "$@" --output text; }
 for api in $(q apigatewayv2 get-apis --query "Items[?Name=='property-api'].ApiId"); do
   echo "Deleting HTTP API $api"; aws apigatewayv2 delete-api --api-id "$api"
 done
-aws lambda delete-function --function-name get-property 2>/dev/null && echo "Deleted Lambda get-property"
+aws lambda delete-function --function-name get-property >/dev/null 2>&1 && echo "Deleted Lambda get-property"
 aws logs delete-log-group --log-group-name /aws/lambda/get-property 2>/dev/null && echo "Deleted log group"
 if aws iam get-role --role-name get-property-role >/dev/null 2>&1; then
   aws iam delete-role-policy --role-name get-property-role --policy-name dynamodb-read-properties

@@ -1,0 +1,25 @@
+== Existing listing (first call may include a Lambda cold start)
+$ curl https://<api-id>.execute-api.us-east-2.amazonaws.com/properties/R100234
+{"LM_Dec_3": "2", "LM_Int2_3": "1450", "L_City": "Sacramento", "L_Keyword2": "3", "L_ListingID": "R100234", "L_Status": "Active", "L_SystemPrice": "450000"}
+[HTTP 200, 1.401439s]
+
+== Same listing again (warm)
+$ curl https://<api-id>.execute-api.us-east-2.amazonaws.com/properties/R100234
+{"LM_Dec_3": "2", "LM_Int2_3": "1450", "L_City": "Sacramento", "L_Keyword2": "3", "L_ListingID": "R100234", "L_Status": "Active", "L_SystemPrice": "450000"}
+[HTTP 200, 0.415688s]
+
+== Another listing
+$ curl https://<api-id>.execute-api.us-east-2.amazonaws.com/properties/R100236
+{"LM_Dec_3": "1", "LM_Int2_3": "900", "L_City": "Sacramento", "L_Keyword2": "2", "L_ListingID": "R100236", "L_Status": "Pending", "L_SystemPrice": "299000"}
+[HTTP 200, 0.471673s]
+
+== Unknown listing -> 404, same as the Flask app
+$ curl https://<api-id>.execute-api.us-east-2.amazonaws.com/properties/R999999
+{"error": "not found"}
+[HTTP 404, 0.497743s]
+
+== Route that doesn't exist -> API Gateway's own 404
+$ curl https://<api-id>.execute-api.us-east-2.amazonaws.com/properties
+{"message":"Not Found"}
+[HTTP 404, 0.558853s]
+

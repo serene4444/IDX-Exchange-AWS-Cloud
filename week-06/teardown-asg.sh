@@ -45,7 +45,7 @@ for VPC in $(q ec2 describe-vpcs --filters "$F" --query "Vpcs[].VpcId"); do
       --ip-permissions "$(aws ec2 describe-security-groups --group-ids "$sg" --query 'SecurityGroups[0].IpPermissions' --output json)" >/dev/null 2>&1
   done
   for sg in $(q ec2 describe-security-groups --filters Name=vpc-id,Values=$VPC --query "SecurityGroups[?GroupName!='default'].GroupId"); do
-    echo "Deleting SG: $sg"; aws ec2 delete-security-group --group-id "$sg"
+    echo "Deleting SG: $sg"; aws ec2 delete-security-group --group-id "$sg" >/dev/null
   done
   for s in $(q ec2 describe-subnets --filters Name=vpc-id,Values=$VPC --query "Subnets[].SubnetId"); do
     echo "Deleting subnet: $s"; aws ec2 delete-subnet --subnet-id "$s"

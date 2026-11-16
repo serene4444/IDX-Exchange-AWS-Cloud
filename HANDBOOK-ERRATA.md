@@ -1,4 +1,4 @@
-# Handbook Errata: Weeks 0–4
+# Handbook Errata: Weeks 0–7
 
 Corrections to the *IDX Exchange AWS Cloud Engineer Track Intern Handbook*, found while working through the labs. Each entry gives the location, the problem, and copy-paste-ready replacement text. Step numbers follow the handbook's continuous numbering (1–81).
 
@@ -159,3 +159,67 @@ msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
 
 - **Workaround for one session:** `$env:NO_PROXY='*'`
 - **Permanent fix:** Settings → Network & internet → Proxy → Manual proxy setup → turn off **Use a proxy server**.
+
+## 8. Week 6, Lab 6.2: `amazon-linux-extras` doesn't exist on Amazon Linux 2023
+
+**Problem:** Week 3 and Week 6 both specify the **Amazon Linux 2023** AMI, but Lab 6.2 runs `sudo amazon-linux-extras install epel -y`, an Amazon Linux **2** tool. On AL2023 it fails with `amazon-linux-extras: command not found` (exit 127).
+
+**Fix:** replace the Lab 6.2 stress commands with:
+
+```bash
+sudo dnf install -y stress-ng
+stress-ng --cpu 2 --timeout 300
+```
+
+## 9. Week 6, Lab 6.2: stressing one instance may not trigger scale-out
+
+**Problem:** the ASG runs **2** instances and the target is **50% average** CPU. Stressing one instance gives one at 100% and one at about 0%, which averages to about 50%. That doesn't reliably *exceed* the target, so the "You'll know it worked when" check may never happen. The instances are also in **private subnets** with no bastion in this lab, so "SSH into an instance" isn't possible as written.
+
+**Fix:** stress **every** instance in the group, without SSH, using SSM Run Command. Give the launch template an instance profile with `AmazonSSMManagedInstanceCore`, then run:
+
+```bash
+aws ssm send-command --document-name AWS-RunShellScript \
+  --targets Key=tag:aws:autoscaling:groupName,Values=<your-asg-name> \
+  --parameters 'commands=["dnf install -y stress-ng","nohup stress-ng --cpu 2 --timeout 600 >/tmp/stress.log 2>&1 &"]'
+```
+
+**Suggested addition:** turn on **detailed monitoring** in the launch template. With basic (5-minute) metrics, target tracking needs about 15 minutes to scale out. With 1-minute metrics it took about 4 minutes in my run.
+
+## 10. Week 6, Debug Lab 6.3: the symptom is 504, not 502
+
+**Problem:** when the instance SG doesn't allow 8080 from the ALB's SG, the ALB's connections to the targets **time out**. Reproduced: all targets showed `unhealthy (Target.Timeout)`, and the ALB returned **`504 Gateway Time-out`** after about 10 s. A **502 Bad Gateway** comes from a *refused or reset* connection: the SG is open but nothing is listening on 8080, or the app crashed. Students who see a 504 won't match it to this lab.
+
+**Fix:** change the Debug Lab 6.3 symptom to *"returns 504 Gateway Time-out (or 503 if no targets are registered)"*. Then add: *"A 502 instead means the ALB reached the instance but the app refused or dropped the connection. Check that the app is running and listening on 8080."*
+
+## 11. Week 7, Lab 7.1, Step 62: the Lambda code returns 500 on the handbook's own data
+
+**Problem:** Lab 4.3 (and Step 60, which reuses it) loads `R100234` with `L_Keyword2` and `L_SystemPrice` as DynamoDB **Numbers**. boto3 returns Numbers as `decimal.Decimal`, and `json.dumps(resp.get('Item', {}))` raises `TypeError: Object of type Decimal is not JSON serializable`. So the Step 65 `curl` returns `{"message":"Internal Server Error"}` on the first try. It also returns `200 {}` for a missing ID, while PropertyLite returns `404`.
+
+**Fix:** replace the Step 62 code with:
+
+```python
+import json, boto3
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table('Properties')
+
+def lambda_handler(event, context):
+    listing_id = event['pathParameters']['id']
+    item = table.get_item(Key={'L_ListingID': listing_id}).get('Item')
+    if item is None:
+        return {'statusCode': 404, 'body': json.dumps({'error': 'not found'})}
+    return {'statusCode': 200, 'body': json.dumps(item, default=str)}
+```
+
+**Suggested addition to Debug Lab 7.3's root causes:** *(3) `TypeError: Object of type Decimal is not JSON serializable`: DynamoDB numbers come back as `Decimal`; pass `default=str` to `json.dumps`.*
+
+## 12. Week 7, Lab 7.1, Step 63: the role also needs CloudWatch Logs permission, and fixes take time
+
+**Problem:** Step 63 says to attach a custom read-only DynamoDB policy, and Debug Lab 7.3 says to read the CloudWatch logs. A console-created function gets a role with log permissions automatically, but a role created any other way (CLI, and Terraform from Week 8 on) doesn't. Then the function has no logs at all.
+
+**Fix:** add to Step 63: *"Make sure the role also has `AWSLambdaBasicExecutionRole` (the console adds it automatically; the CLI and Terraform don't)."* Also, the custom policy only needs `dynamodb:GetItem`, not all read actions. Least privilege for this one route is a single action.
+
+**Suggested addition to Debug Lab 7.3:** *"IAM changes are eventually consistent. After fixing the policy I saw `AccessDeniedException` keep appearing for about 5 minutes. Re-check the policy, then wait and retry before changing anything else."* Also: the IAM policy simulator shows **explicitDeny for everything** when an Organizations SCP restricts regions, unless you pass the `aws:RequestedRegion` context key.
+
+## 13. Week 6, Step 58: the first ASG in an account can fail to get a scaling policy
+
+**Not a handbook bug, but worth a Common-mistakes line.** Creating the first Auto Scaling group in an account also creates the `AWSServiceRoleForAutoScaling` service-linked role. For about 20 seconds afterward, `put-scaling-policy` fails with `ServiceLinkedRoleFailure: ... not yet ready for use`. Wait and retry.
