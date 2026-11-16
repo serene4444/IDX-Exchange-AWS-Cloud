@@ -12,7 +12,8 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region  = "us-east-1"
+  profile = "intern01" # SSO profile (account 604531678534); run `aws sso login --profile intern01` first
 
   # Every resource Terraform creates gets these tags, so it's obvious in the console
   # which resources are Terraform-managed (and must not be edited by hand).

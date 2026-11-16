@@ -16,8 +16,8 @@ The program doesn't build a new app every week. It hands you one small, working 
 | 5 | Networking: VPC deep dive | ✅ Done | [week-05/](./week-05/) |
 | 6 | Load balancing & auto scaling | ✅ Done | [week-06/](./week-06/) |
 | 7 | Serverless & event-driven (Lambda, API Gateway, SQS) | ✅ Done | [week-07/](./week-07/) |
-| 8 | Infrastructure as Code (Terraform) | ⏭️ Next | |
-| 9 | Containers (Docker, ECR, ECS Fargate) | ⏳ | |
+| 8 | Infrastructure as Code (Terraform) | ✅ Done | [week-08/](./week-08/) |
+| 9 | Containers (Docker, ECR, ECS Fargate) | ⏭️ Next | |
 | 10 | CI/CD (GitHub Actions + OIDC) | ⏳ | |
 | 11 | Observability, Well-Architected & cost | ⏳ | |
 | 12 | Capstone: PropertyLite in production | ⏳ | |
@@ -71,11 +71,19 @@ The program doesn't build a new app every week. It hands you one small, working 
 - Built an **SQS queue with a dead-letter queue** and showed a message moving to the DLQ after 3 failed receives.
 - Found that the handbook's Lambda code returns 500 on its own test data (a `Decimal` JSON bug), diagnosed it from **CloudWatch Logs**, and fixed it.
 
+### Week 8: Infrastructure as Code
+
+- Rebuilt the Week 5 VPC in **Terraform** with the `terraform-aws-modules/vpc` module. About 10 lines of config became 19 resources, applied in 2 minutes and destroyed in 71 seconds.
+- Reproduced **drift**: deleted a managed route outside Terraform, `plan` caught it, and `apply` put it back.
+- Reproduced a **lost-state** problem with `state rm`, where plan wanted to create a duplicate IGW. Fixed it with `terraform import`.
+- Moved to us-east-1 in my `intern01` SSO account. State files are gitignored because they can contain secrets.
+
 ## Skills & services
 
 **AWS:** IAM (users, roles, policies, Access Analyzer, policy simulator), AWS Organizations SCPs, EC2, EBS, S3, RDS (MySQL), DynamoDB, VPC (subnets, route tables, IGW, NAT Gateway), security groups, ALB, Auto Scaling, Lambda, API Gateway, SQS, CloudWatch (metrics, alarms, logs), Systems Manager, Budgets  
-**Tools:** AWS CLI v2, Git/GitHub, Python/Flask, Bash, SSH  
-**Coming up:** Terraform, Docker, ECR, ECS Fargate, GitHub Actions (OIDC), CloudWatch dashboards, SNS
+**Tools:** Terraform, AWS CLI v2 (incl. SSO profiles), Git/GitHub, Python/Flask, Bash, SSH  
+**IaC:** Terraform (modules, state, plan/apply/destroy, import, drift)  
+**Coming up:** Docker, ECR, ECS Fargate, GitHub Actions (OIDC), CloudWatch dashboards, SNS
 
 ## Repo layout
 
@@ -88,6 +96,7 @@ week-04/          S3 lifecycle, RDS PII cleanup SQL, storage decision guide
 week-05/          VPC build/teardown scripts, diagram, traffic-path write-up
 week-06/          ALB + ASG build/teardown scripts, load test report with CloudWatch graphs
 week-07/          Lambda code, least-privilege role policy, API/SQS scripts, curl collection
+week-08/          Terraform VPC (main.tf + lock file), plan/apply/destroy + state write-up
 HANDBOOK-ERRATA.md  Handbook corrections found while doing the labs
 ```
 
